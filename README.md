@@ -1,6 +1,6 @@
 # BekasShop - Full-Stack E-commerce Application
 
-A modern, full-stack e-commerce application built with React.js frontend, Node.js backend, and SQLite database, featuring FIB (First Iraqi Bank) payment integration.
+A modern, full-stack e-commerce application built with React.js frontend, Node.js backend, and PostgresSql database, featuring FIB (First Iraqi Bank) payment integration.
 
 ## 🚀 Features
 
@@ -16,11 +16,11 @@ A modern, full-stack e-commerce application built with React.js frontend, Node.j
 ### Backend (Node.js + Express)
 - **RESTful API**: Complete API for products, users, orders, and payments
 - **Authentication**: JWT-based user authentication and authorization
-- **Database**: SQLite database with automatic table creation
+- **Database**: PostgresSql database with automatic table creation
 - **Payment Processing**: FIB payment gateway integration
 - **Error Handling**: Comprehensive error handling and validation
 
-### Database (SQLite)
+### Database (PostgresSql)
 - **Users Table**: User accounts with secure password hashing
 - **Products Table**: Product catalog with images and stock management
 - **Orders Table**: Order tracking with payment information
