@@ -10,14 +10,14 @@ const FormData = require('form-data');
 const db = require('./database');
 require('dotenv').config();
 
-const FIB_BASE_URL = process.env.FIB_BASE_URL || 'https://fib.stage.fib.iq';
-const FIB_CLIENT_ID = process.env.FIB_CLIENT_ID || 'icf-market';
-const FIB_CLIENT_SECRET = process.env.FIB_CLIENT_SECRET || '15dba883-3c31-4bf4-b27d-d6ab51c177b0';
+const FIB_BASE_URL = process.env.FIB_BASE_URL;
+const FIB_CLIENT_ID = process.env.FIB_CLIENT_ID;
+const FIB_CLIENT_SECRET = process.env.FIB_CLIENT_SECRET;
 
 // FIB SSO credentials
-const FIB_SSO_BASE_URL = process.env.FIB_SSO_BASE_URL || 'https://fib.stage.fib.iq';
-const FIB_SSO_CLIENT_ID = process.env.FIB_SSO_CLIENT_ID || 'stageSSO';
-const FIB_SSO_CLIENT_SECRET = process.env.FIB_SSO_CLIENT_SECRET || '215233bd-0624-4fba-98e7-3e3616fdbf08';
+const FIB_SSO_BASE_URL = process.env.FIB_SSO_BASE_URL;
+const FIB_SSO_CLIENT_ID = process.env.FIB_SSO_CLIENT_ID;
+const FIB_SSO_CLIENT_SECRET = process.env.FIB_SSO_CLIENT_SECRET;
 
 const FORCE_SAMPLE_PRODUCTS = true; // Force insertion of sample products
 
