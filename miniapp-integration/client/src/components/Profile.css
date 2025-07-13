@@ -1,0 +1,240 @@
+.profile-overlay {
+  position: fixed;
+  top: 400px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.profile-overlay.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.profile-modal {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-overlay.visible .profile-modal {
+  transform: scale(1);
+}
+
+.profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px 10px 25px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  border-radius: 15px 15px 0 0;
+  position: relative;
+  min-height: unset;
+}
+
+.profile-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.below-avatar-close-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 10%;
+  margin-top: 8px;
+  margin-bottom: 20px;
+}
+
+.giant-close-btn {
+  background: white;
+  border: 3px solid #e0e0e0;
+  color: #333;
+  font-size: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  transition: all 0.2s;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.giant-close-btn:hover {
+  background: #f0f0f0;
+  color: #d32f2f;
+  border-color: #bbb;
+}
+
+.modal-close-row, .centered-close-btn, .close-btn {
+  display: none !important;
+}
+
+.profile-content {
+  padding: 20px 25px 25px 25px;
+  margin-top: 0;
+}
+
+.profile-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 25px;
+  margin-top: 0;
+}
+
+.profile-avatar svg {
+  width: 80px;
+  height: 80px;
+  color: #667eea;
+  background: #f0f2ff;
+  border-radius: 50%;
+  padding: 20px;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.info-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-group:last-child {
+  border-bottom: none;
+}
+
+.info-group label {
+  font-weight: 600;
+  color: #555;
+  font-size: 0.9rem;
+  min-width: 120px;
+}
+
+.info-group span {
+  color: #333;
+  font-size: 0.95rem;
+  text-align: right;
+  word-break: break-word;
+  max-width: 60%;
+}
+
+.fib-section {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.fib-section h4 {
+  color: #28a745;
+  margin: 0 0 15px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fib-section h4::before {
+  content: '🏦';
+  font-size: 1.2rem;
+}
+
+.phone-number,
+.iban,
+.gender,
+.dob {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #28a745;
+  font-weight: 500;
+}
+
+.phone-number svg,
+.iban svg,
+.gender svg,
+.dob svg {
+  color: #28a745;
+  font-size: 0.9rem;
+}
+
+.regular-user-note {
+  margin-top: 20px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #6c757d;
+}
+
+.regular-user-note p {
+  margin: 0;
+  color: #6c757d;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .profile-modal {
+    width: 95%;
+    margin: 0;
+    max-height: 95vh;
+  }
+  .profile-header {
+    padding: 15px 20px 8px 20px;
+  }
+  .profile-content {
+    padding: 15px 15px 20px 15px;
+  }
+  .info-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+  .info-group label {
+    min-width: auto;
+  }
+  .info-group span {
+    text-align: left;
+    max-width: 100%;
+  }
+  .giant-close-btn {
+    width: 18px;
+    height: 18px;
+    font-size: 1.7rem;
+  }
+  .below-avatar-close-row {
+    margin-top: 4px;
+    margin-bottom: 12px;
+  }
+} 
