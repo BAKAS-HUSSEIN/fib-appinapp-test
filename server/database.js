@@ -4,7 +4,7 @@ require('dotenv').config();
 console.log('Connecting to PostgreSQL...');
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: 'postgresql://miniappuser:sFQ9m14uTarUsYCL9CD1B8NrimxfdMNs@dpg-d1q3kkqdbo4c73c40g30-a.oregon-postgres.render.com/miniappdb',
   ssl: false
 });
 
