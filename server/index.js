@@ -11,8 +11,8 @@ const db = require('./database');
 require('dotenv').config();
 
 const FIB_BASE_URL = process.env.FIB_BASE_URL;
-const FIB_CLIENT_ID = process.env.FIB_CLIENT_ID;
-const FIB_CLIENT_SECRET = process.env.FIB_CLIENT_SECRET;
+const FIB_CLIENT_ID = process.env.FIB_CLIENT_ID || 'fib-online-stage-payment-496';
+const FIB_CLIENT_SECRET = process.env.FIB_CLIENT_SECRET || '70d9174b-93e9-4ffb-b2b5-e5dfa4f4972';
 
 // FIB SSO credentials
 const FIB_SSO_BASE_URL = process.env.FIB_SSO_BASE_URL;
