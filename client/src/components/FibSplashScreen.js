@@ -16,10 +16,13 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
   const [ssoData, setSsoData] = useState(null);
 
   useEffect(() => {
+    // Only proceed if we're actually in FIB app mode
     if (!isInFibApp()) {
-      // If not in FIB app, this component shouldn't be shown
+      console.log('FibSplashScreen: Not in FIB app, skipping bridge operations');
       return;
     }
+
+    console.log('FibSplashScreen: Starting FIB authentication process');
 
     // Set up event listeners for native app communication
     const handleAuthenticated = async (event) => {
@@ -76,6 +79,11 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
     try {
       setStatus('authenticating');
       
+      // Double-check we're in FIB mode before proceeding
+      if (!isInFibApp()) {
+        throw new Error('Not in FIB app mode');
+      }
+      
       // Get SSO authorization code from backend
       const response = await axios.post('/api/auth/fib-sso/initiate');
       if (response.data && response.data.ssoAuthorizationCode) {
@@ -89,7 +97,11 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
     } catch (error) {
       console.error('Authentication initiation failed:', error);
       setStatus('failed');
-      setError('Failed to start authentication process');
+      if (error.message === 'Not in FIB app mode') {
+        setError('This feature is only available in the FIB app');
+      } else {
+        setError('Failed to start authentication process');
+      }
     }
   };
 

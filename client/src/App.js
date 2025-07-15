@@ -12,6 +12,7 @@ import PaymentCancelled from './pages/PaymentCancelled';
 import FIBPaymentPage from './pages/FIBPaymentPage';
 import FibSsoLogin from './pages/FibSsoLogin';
 import FibSplashScreen from './components/FibSplashScreen';
+import DebugInfo from './components/DebugInfo';
 import { initializeFibBridge } from './utils/fibBridge';
 import { useFibContext } from './context/FibContext';
 import './App.css';
@@ -31,7 +32,10 @@ function App() {
       // In FIB app mode, show splash screen for authentication
       setShowSplash(true);
     } else {
-      // In standalone mode, check for stored user token
+      // In standalone mode, NEVER show splash screen
+      setShowSplash(false);
+      
+      // Check for stored user token
       const token = localStorage.getItem('token');
       const userData = localStorage.getItem('user');
       
@@ -124,7 +128,7 @@ function App() {
   }
 
   // Show splash screen in FIB mode when not authenticated
-  if (showSplash && isFibMode) {
+  if (showSplash && isFibMode && !user) {
     return (
       <FibSplashScreen 
         onAuthenticationSuccess={login}
@@ -139,6 +143,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+        <DebugInfo />
         <Navbar 
           user={user} 
           logout={logout} 
