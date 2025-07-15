@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaShoppingCart, FaUser, FaSignOutAlt, FaUserCircle } from 'react-icons/fa';
 import Profile from './Profile';
+import { useFibContext } from '../context/FibContext';
 import './Navbar.css';
 
 const Navbar = ({ user, logout, cartCount }) => {
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
+  const { isFibMode } = useFibContext();
 
   const handleLogout = () => {
     logout();
@@ -48,25 +50,33 @@ const Navbar = ({ user, logout, cartCount }) => {
                   <FaUser /> Orders
                 </Link>
               </li>
-              <li className="nav-item">
-                <button onClick={handleProfileClick} className="nav-link profile-btn">
-                  <FaUserCircle /> Profile
-                </button>
-              </li>
-              <li className="nav-item">
-                <button onClick={handleLogout} className="nav-link logout-btn">
-                  <FaSignOutAlt /> Logout
-                </button>
-              </li>
+              {!isFibMode && (
+                <li className="nav-item">
+                  <button onClick={handleProfileClick} className="nav-link profile-btn">
+                    <FaUserCircle /> Profile
+                  </button>
+                </li>
+              )}
+              {!isFibMode && (
+                <li className="nav-item">
+                  <button onClick={handleLogout} className="nav-link logout-btn">
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </li>
+              )}
             </>
           ) : (
             <>
-              <li className="nav-item">
-                <Link to="/login" className="nav-link">Login</Link>
-              </li>
-              <li className="nav-item">
-                <Link to="/register" className="nav-link">Register</Link>
-              </li>
+              {!isFibMode && (
+                <>
+                  <li className="nav-item">
+                    <Link to="/login" className="nav-link">Login</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/register" className="nav-link">Register</Link>
+                  </li>
+                </>
+              )}
             </>
           )}
         </ul>

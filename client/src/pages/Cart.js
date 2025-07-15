@@ -1,20 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaTrash, FaMinus, FaPlus, FaCreditCard } from 'react-icons/fa';
 import axios from 'axios';
+import { 
+  initiatePaymentWithNative, 
+  addNativeEventListener, 
+  removeNativeEventListener,
+  NATIVE_EVENTS 
+} from '../utils/fibBridge';
+import { useFibContext } from '../context/FibContext';
 import './Cart.css';
 
 const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { isFibMode } = useFibContext();
 
   const calculateTotal = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
+
+
   const handleCheckout = async () => {
     if (!user) {
+      if (isFibMode) {
+        setError('Please wait for authentication to complete');
+        return;
+      }
       navigate('/login');
       return;
     }
@@ -48,13 +62,19 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       const paymentResponse = await axios.post('/api/payment/fib', paymentData);
 
       if (paymentResponse.data.success) {
-        clearCart();
-        navigate('/fib-payment', { state: {
-          ...paymentResponse.data,
-          ...paymentData,
-          payment_id: paymentResponse.data.paymentId, // ensure snake_case for backend
-          paymentId: paymentResponse.data.paymentId // ensure camelCase for frontend
-        }});
+        if (isFibMode) {
+          // Use bridge-based payment in FIB mode
+          await handleFibPayment(paymentResponse.data, paymentData);
+        } else {
+          // Use regular web payment flow
+          clearCart();
+          navigate('/fib-payment', { state: {
+            ...paymentResponse.data,
+            ...paymentData,
+            payment_id: paymentResponse.data.paymentId,
+            paymentId: paymentResponse.data.paymentId
+          }});
+        }
       } else {
         setError('Payment failed. Please try again.');
       }
@@ -63,6 +83,62 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       console.error('Checkout error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleFibPayment = async (paymentResponse, paymentData) => {
+    try {
+      // Set up event listeners for payment results
+      const handlePaymentSuccess = async (event) => {
+        const { transactionId } = event.detail.body;
+        
+        // Save order to backend
+        try {
+          const token = localStorage.getItem('token');
+          await fetch('/api/orders', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              items: paymentData.items,
+              total_amount: paymentData.total_amount,
+              payment_id: transactionId
+            })
+          });
+          
+          clearCart();
+          navigate('/payment-success');
+        } catch (err) {
+          setError('Payment successful but failed to save order.');
+        }
+      };
+
+      const handlePaymentFailed = (event) => {
+        const { transactionId, reason } = event.detail.body;
+        setError(`Payment failed: ${reason || 'Unknown error'}`);
+      };
+
+      // Add event listeners
+      addNativeEventListener(NATIVE_EVENTS.PAYMENT_SUCCESSFULLY_PAID, handlePaymentSuccess);
+      addNativeEventListener(NATIVE_EVENTS.PAYMENT_FAILED, handlePaymentFailed);
+
+      // Send payment to native app
+      initiatePaymentWithNative(
+        paymentResponse.paymentId, 
+        paymentResponse.readableCode
+      );
+
+      // Cleanup event listeners after a timeout
+      setTimeout(() => {
+        removeNativeEventListener(NATIVE_EVENTS.PAYMENT_SUCCESSFULLY_PAID, handlePaymentSuccess);
+        removeNativeEventListener(NATIVE_EVENTS.PAYMENT_FAILED, handlePaymentFailed);
+      }, 300000); // 5 minutes timeout
+
+    } catch (error) {
+      console.error('Failed to initiate FIB payment:', error);
+      setError('Failed to initiate payment with FIB app');
     }
   };
 

@@ -1,0 +1,121 @@
+.fib-splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.splash-content {
+  text-align: center;
+  color: white;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.splash-logo {
+  margin-bottom: 2rem;
+}
+
+.fib-logo-large {
+  width: 120px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+.splash-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.splash-status h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.splash-status p {
+  margin: 0;
+  opacity: 0.9;
+  font-size: 1rem;
+}
+
+.spinner {
+  font-size: 2rem;
+  animation: spin 1s linear infinite;
+}
+
+.success-icon {
+  font-size: 2rem;
+  color: #4CAF50;
+}
+
+.error-icon {
+  font-size: 2rem;
+  color: #f44336;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-section {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.error-message {
+  color: #ffcdd2;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.retry-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.retry-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.retry-btn:active {
+  transform: translateY(1px);
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .splash-content {
+    padding: 1rem;
+  }
+  
+  .fib-logo-large {
+    width: 100px;
+  }
+  
+  .splash-status h2 {
+    font-size: 1.25rem;
+  }
+  
+  .splash-status p {
+    font-size: 0.9rem;
+  }
+} 

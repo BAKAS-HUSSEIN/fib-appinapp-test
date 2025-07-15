@@ -11,20 +11,33 @@ import PaymentSuccess from './pages/PaymentSuccess';
 import PaymentCancelled from './pages/PaymentCancelled';
 import FIBPaymentPage from './pages/FIBPaymentPage';
 import FibSsoLogin from './pages/FibSsoLogin';
+import FibSplashScreen from './components/FibSplashScreen';
+import { initializeFibBridge } from './utils/fibBridge';
+import { useFibContext } from './context/FibContext';
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
+  const { isFibMode } = useFibContext();
 
   useEffect(() => {
-    // Check for stored user token
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    // Initialize FIB bridge
+    initializeFibBridge();
     
-    if (token && userData) {
-      setUser(JSON.parse(userData));
+    if (isFibMode) {
+      // In FIB app mode, show splash screen for authentication
+      setShowSplash(true);
+    } else {
+      // In standalone mode, check for stored user token
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      if (token && userData) {
+        setUser(JSON.parse(userData));
+      }
     }
     
     // Load cart from localStorage
@@ -34,7 +47,7 @@ function App() {
     }
     
     setLoading(false);
-  }, []);
+  }, [isFibMode]);
 
   useEffect(() => {
     // Save cart to localStorage whenever it changes
@@ -43,8 +56,15 @@ function App() {
 
   const login = (userData, token) => {
     setUser(userData);
-    localStorage.setItem('token', token);
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     localStorage.setItem('user', JSON.stringify(userData));
+    
+    // Hide splash screen if in FIB mode
+    if (isFibMode) {
+      setShowSplash(false);
+    }
   };
 
   const logout = () => {
@@ -53,6 +73,11 @@ function App() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('cart');
+    
+    // In FIB mode, show splash screen again after logout
+    if (isFibMode) {
+      setShowSplash(true);
+    }
   };
 
   const addToCart = (product) => {
@@ -95,6 +120,19 @@ function App() {
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div className="spinner"></div>
       </div>
+    );
+  }
+
+  // Show splash screen in FIB mode when not authenticated
+  if (showSplash && isFibMode) {
+    return (
+      <FibSplashScreen 
+        onAuthenticationSuccess={login}
+        onAuthenticationFailure={() => {
+          // Handle authentication failure - could show error or retry
+          console.error('FIB authentication failed');
+        }}
+      />
     );
   }
 
