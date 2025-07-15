@@ -19,6 +19,8 @@ export const FibProvider = ({ children }) => {
     // Check if running in FIB app mode
     const checkFibMode = () => {
       const fibMode = isInFibApp();
+      console.log('FibContext: Checking FIB mode:', fibMode);
+      console.log('FibContext: window.FIBNativeBridge exists:', !!window.FIBNativeBridge);
       setIsFibMode(fibMode);
       setIsBridgeReady(fibMode);
     };

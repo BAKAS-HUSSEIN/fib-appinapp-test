@@ -1,4 +1,5 @@
 import { registerFIBNativeBridge } from "@first-iraqi-bank/sdk/fib-native-bridge";
+import { checkTestMode } from './testMode';
 
 // Bridge state
 let bridgeInitialized = false;
@@ -6,6 +7,14 @@ let bridgeAvailable = false;
 
 // Initialize the FIB native bridge
 export const initializeFibBridge = () => {
+  // Check for test mode first
+  if (checkTestMode()) {
+    bridgeInitialized = true;
+    bridgeAvailable = true;
+    console.log('Test Mode: FIB Native Bridge initialized');
+    return;
+  }
+  
   try {
     registerFIBNativeBridge();
     bridgeInitialized = true;
@@ -19,7 +28,22 @@ export const initializeFibBridge = () => {
 
 // Check if running inside FIB native app
 export const isInFibApp = () => {
-  return bridgeAvailable && bridgeInitialized && window.FIBNativeBridge;
+  console.log('isInFibApp check:', {
+    bridgeAvailable,
+    bridgeInitialized,
+    hasWindowBridge: !!window.FIBNativeBridge,
+    userAgent: navigator.userAgent
+  });
+  
+  // Check if we're in a WebView (common indicators)
+  const isWebView = /WebView|wv|FBAN|FBAV|Instagram|Line|WhatsApp|Telegram/i.test(navigator.userAgent);
+  
+  // Check if bridge is available
+  const hasBridge = bridgeAvailable && bridgeInitialized && window.FIBNativeBridge;
+  
+  console.log('isInFibApp result:', { isWebView, hasBridge, finalResult: hasBridge });
+  
+  return hasBridge;
 };
 
 // Send message to native app

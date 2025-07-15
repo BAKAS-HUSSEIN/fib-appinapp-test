@@ -97,10 +97,15 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
     } catch (error) {
       console.error('Authentication initiation failed:', error);
       setStatus('failed');
+      
       if (error.message === 'Not in FIB app mode') {
         setError('This feature is only available in the FIB app');
+      } else if (error.response && error.response.status === 403) {
+        setError('Access denied by FIB servers. Please try again later.');
+      } else if (error.response && error.response.status >= 500) {
+        setError('FIB servers are temporarily unavailable. Please try again later.');
       } else {
-        setError('Failed to start authentication process');
+        setError('Failed to start authentication process. Please check your connection.');
       }
     }
   };

@@ -28,6 +28,12 @@ function App() {
     // Initialize FIB bridge
     initializeFibBridge();
     
+    // Load cart from localStorage
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+    
     if (isFibMode) {
       // In FIB app mode, show splash screen for authentication
       setShowSplash(true);
@@ -42,12 +48,6 @@ function App() {
       if (token && userData) {
         setUser(JSON.parse(userData));
       }
-    }
-    
-    // Load cart from localStorage
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
     }
     
     setLoading(false);
