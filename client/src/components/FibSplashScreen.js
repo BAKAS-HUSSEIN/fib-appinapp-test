@@ -86,6 +86,8 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
       
       // Get SSO authorization code from backend
       const response = await axios.post('/api/auth/fib-sso/initiate');
+      console.log('SSO initiation response:', response.data);
+      
       if (response.data && response.data.ssoAuthorizationCode) {
         setSsoData(response.data);
         

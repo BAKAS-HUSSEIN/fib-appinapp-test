@@ -12,7 +12,7 @@ import PaymentCancelled from './pages/PaymentCancelled';
 import FIBPaymentPage from './pages/FIBPaymentPage';
 import FibSsoLogin from './pages/FibSsoLogin';
 import FibSplashScreen from './components/FibSplashScreen';
-import DebugInfo from './components/DebugInfo';
+import DebugPanel from './components/DebugPanel';
 import { initializeFibBridge } from './utils/fibBridge';
 import { useFibContext } from './context/FibContext';
 import './App.css';
@@ -34,6 +34,10 @@ function App() {
       setCart(JSON.parse(savedCart));
     }
     
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
     if (isFibMode) {
       // In FIB app mode, show splash screen for authentication
       setShowSplash(true);
@@ -49,8 +53,6 @@ function App() {
         setUser(JSON.parse(userData));
       }
     }
-    
-    setLoading(false);
   }, [isFibMode]);
 
   useEffect(() => {
@@ -143,7 +145,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <DebugInfo />
+        <DebugPanel />
         <Navbar 
           user={user} 
           logout={logout} 

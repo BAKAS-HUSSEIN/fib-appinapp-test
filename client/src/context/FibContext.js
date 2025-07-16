@@ -29,7 +29,7 @@ export const FibProvider = ({ children }) => {
     checkFibMode();
 
     // Check again after a short delay to ensure bridge is initialized
-    const timer = setTimeout(checkFibMode, 1000);
+    const timer = setTimeout(checkFibMode, 2000);
 
     return () => clearTimeout(timer);
   }, []);

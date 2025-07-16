@@ -62,6 +62,8 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       const paymentResponse = await axios.post('/api/payment/fib', paymentData);
 
       if (paymentResponse.data.success) {
+        console.log('Payment initiated successfully:', paymentResponse.data);
+        
         if (isFibMode) {
           // Use bridge-based payment in FIB mode
           await handleFibPayment(paymentResponse.data, paymentData);
@@ -88,8 +90,11 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
 
   const handleFibPayment = async (paymentResponse, paymentData) => {
     try {
+      console.log('Starting FIB payment process:', paymentResponse);
+      
       // Set up event listeners for payment results
       const handlePaymentSuccess = async (event) => {
+        console.log('Payment success event received:', event);
         const { transactionId } = event.detail.body;
         
         // Save order to backend
@@ -116,6 +121,7 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       };
 
       const handlePaymentFailed = (event) => {
+        console.log('Payment failed event received:', event);
         const { transactionId, reason } = event.detail.body;
         setError(`Payment failed: ${reason || 'Unknown error'}`);
       };
@@ -125,6 +131,11 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       addNativeEventListener(NATIVE_EVENTS.PAYMENT_FAILED, handlePaymentFailed);
 
       // Send payment to native app
+      console.log('Sending payment to native app:', {
+        paymentId: paymentResponse.paymentId,
+        readableCode: paymentResponse.readableCode
+      });
+      
       initiatePaymentWithNative(
         paymentResponse.paymentId, 
         paymentResponse.readableCode

@@ -23,26 +23,33 @@ export const initializeFibBridge = () => {
   } catch (error) {
     console.log('FIB Native Bridge not available (running in standalone mode)');
     bridgeAvailable = false;
+    bridgeInitialized = false;
   }
 };
 
 // Check if running inside FIB native app
 export const isInFibApp = () => {
+  // First check if we're in test mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const testMode = urlParams.get('testMode');
+  
+  if (testMode === 'true') {
+    console.log('isInFibApp: Test mode detected');
+    return true;
+  }
+  
+  // Check if bridge is actually available and working
+  const hasBridge = bridgeAvailable && bridgeInitialized && window.FIBNativeBridge;
+  
   console.log('isInFibApp check:', {
     bridgeAvailable,
     bridgeInitialized,
     hasWindowBridge: !!window.FIBNativeBridge,
-    userAgent: navigator.userAgent
+    userAgent: navigator.userAgent,
+    hasBridge
   });
   
-  // Check if we're in a WebView (common indicators)
-  const isWebView = /WebView|wv|FBAN|FBAV|Instagram|Line|WhatsApp|Telegram/i.test(navigator.userAgent);
-  
-  // Check if bridge is available
-  const hasBridge = bridgeAvailable && bridgeInitialized && window.FIBNativeBridge;
-  
-  console.log('isInFibApp result:', { isWebView, hasBridge, finalResult: hasBridge });
-  
+  // Only return true if bridge is actually available
   return hasBridge;
 };
 
