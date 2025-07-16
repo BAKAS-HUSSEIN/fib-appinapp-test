@@ -64,11 +64,13 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       if (paymentResponse.data.success) {
         console.log('Payment initiated successfully:', paymentResponse.data);
         
-        if (isFibMode) {
+        if (isFibMode && window.FIBNativeBridge) {
           // Use bridge-based payment in FIB mode
+          console.log('Using FIB bridge payment');
           await handleFibPayment(paymentResponse.data, paymentData);
         } else {
           // Use regular web payment flow
+          console.log('Using regular web payment flow');
           clearCart();
           navigate('/fib-payment', { state: {
             ...paymentResponse.data,

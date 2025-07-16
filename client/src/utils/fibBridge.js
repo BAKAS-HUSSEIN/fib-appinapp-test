@@ -29,7 +29,7 @@ export const initializeFibBridge = () => {
 
 // Check if running inside FIB native app
 export const isInFibApp = () => {
-  // First check if we're in test mode
+  // Check for test mode
   const urlParams = new URLSearchParams(window.location.search);
   const testMode = urlParams.get('testMode');
   
@@ -38,19 +38,15 @@ export const isInFibApp = () => {
     return true;
   }
   
-  // Check if bridge is actually available and working
-  const hasBridge = bridgeAvailable && bridgeInitialized && window.FIBNativeBridge;
+  // ONLY return true if we have a working bridge
+  // This is the key fix - don't guess, only use bridge if it's actually there
+  if (window.FIBNativeBridge && typeof window.FIBNativeBridge.sendMessage === 'function') {
+    console.log('isInFibApp: Bridge detected and working');
+    return true;
+  }
   
-  console.log('isInFibApp check:', {
-    bridgeAvailable,
-    bridgeInitialized,
-    hasWindowBridge: !!window.FIBNativeBridge,
-    userAgent: navigator.userAgent,
-    hasBridge
-  });
-  
-  // Only return true if bridge is actually available
-  return hasBridge;
+  console.log('isInFibApp: No bridge detected - running in regular mode');
+  return false;
 };
 
 // Send message to native app

@@ -13,6 +13,7 @@ import FIBPaymentPage from './pages/FIBPaymentPage';
 import FibSsoLogin from './pages/FibSsoLogin';
 import FibSplashScreen from './components/FibSplashScreen';
 import DebugPanel from './components/DebugPanel';
+import ModeIndicator from './components/ModeIndicator';
 import { initializeFibBridge } from './utils/fibBridge';
 import { useFibContext } from './context/FibContext';
 import './App.css';
@@ -34,24 +35,28 @@ function App() {
       setCart(JSON.parse(savedCart));
     }
     
+    // Check for stored user token (for regular mode)
+    const token = localStorage.getItem('token');
+    const userData = localStorage.getItem('user');
+    
+    if (token && userData) {
+      setUser(JSON.parse(userData));
+    }
+    
     setLoading(false);
   }, []);
 
   useEffect(() => {
+    console.log('App: isFibMode changed to:', isFibMode);
+    
     if (isFibMode) {
       // In FIB app mode, show splash screen for authentication
+      console.log('App: Showing splash screen for FIB mode');
       setShowSplash(true);
     } else {
       // In standalone mode, NEVER show splash screen
+      console.log('App: Hiding splash screen for regular mode');
       setShowSplash(false);
-      
-      // Check for stored user token
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      
-      if (token && userData) {
-        setUser(JSON.parse(userData));
-      }
     }
   }, [isFibMode]);
 
@@ -145,6 +150,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+        <ModeIndicator />
         <DebugPanel />
         <Navbar 
           user={user} 
