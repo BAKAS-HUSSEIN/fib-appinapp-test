@@ -1,12 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FaSpinner, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
-import { 
-  isInFibApp, 
-  authenticateWithNative, 
-  addNativeEventListener, 
-  removeNativeEventListener,
-  NATIVE_EVENTS 
-} from '../utils/fibBridge';
 import axios from 'axios';
 import './FibSplashScreen.css';
 
@@ -14,108 +7,96 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
   const [status, setStatus] = useState('initializing'); // initializing, authenticating, success, failed
   const [error, setError] = useState('');
   const [ssoData, setSsoData] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  useEffect(() => {
-    // Only proceed if we're actually in FIB app mode
-    if (!isInFibApp()) {
-      console.log('FibSplashScreen: Not in FIB app, skipping bridge operations');
-      return;
-    }
+  // Helper to remove hyphens
+  const normalizeReadableId = (id) => id.replaceAll('-', '');
 
-    console.log('FibSplashScreen: Starting FIB authentication process');
-
-    // Set up event listeners for native app communication
-    const handleAuthenticated = async (event) => {
-      try {
-        setStatus('success');
-        
-        // Get user details from backend using the SSO data
-        if (ssoData && ssoData.ssoAuthorizationCode) {
-          const response = await axios.get(`/api/auth/fib-sso/details/${ssoData.ssoAuthorizationCode}`);
-          if (response.data && response.data.name) {
-            const user = {
-              username: ssoData.ssoAuthorizationCode,
-              isFibUser: true,
-              fibName: response.data.name,
-              fibIban: response.data.iban,
-              fibDob: response.data.dateOfBirth,
-              fibPhone: response.data.phoneNumber,
-              fibGender: response.data.Gender,
-            };
-            
-            // Wait a moment to show success state, then proceed
-            setTimeout(() => {
-              onAuthenticationSuccess(user, null);
-            }, 1500);
-          }
-        }
-      } catch (error) {
-        console.error('Error getting user details:', error);
-        setStatus('failed');
-        setError('Failed to get user details');
-      }
-    };
-
-    const handleAuthenticationFailed = (event) => {
-      setStatus('failed');
-      setError('Authentication failed. Please try again.');
-    };
-
-    // Add event listeners
-    addNativeEventListener(NATIVE_EVENTS.AUTHENTICATED, handleAuthenticated);
-    addNativeEventListener(NATIVE_EVENTS.AUTHENTICATION_FAILED, handleAuthenticationFailed);
-
-    // Start authentication process
-    initiateAuthentication();
-
-    // Cleanup event listeners
-    return () => {
-      removeNativeEventListener(NATIVE_EVENTS.AUTHENTICATED, handleAuthenticated);
-      removeNativeEventListener(NATIVE_EVENTS.AUTHENTICATION_FAILED, handleAuthenticationFailed);
-    };
-  }, [ssoData, onAuthenticationSuccess, onAuthenticationFailure]);
-
-  const initiateAuthentication = async () => {
+  // Handler for AUTHENTICATED event
+  const handleAuthenticated = useCallback(async (event) => {
+    setStatus('success');
     try {
-      setStatus('authenticating');
-      
-      // Double-check we're in FIB mode before proceeding
-      if (!isInFibApp()) {
-        throw new Error('Not in FIB app mode');
-      }
-      
-      // Get SSO authorization code from backend
-      const response = await axios.post('/api/auth/fib-sso/initiate');
-      console.log('SSO initiation response:', response.data);
-      
-      if (response.data && response.data.ssoAuthorizationCode) {
-        setSsoData(response.data);
-        
-        // Send authentication request to native app
-        authenticateWithNative(response.data.ssoAuthorizationCode);
+      const readableId = ssoData?.ssoAuthorizationCode;
+      if (!readableId) throw new Error('No readableId');
+      // Get user details from backend
+      const response = await axios.get(`/api/auth/fib-sso/details/${readableId}`);
+      if (response.data && response.data.name) {
+        const user = {
+          username: readableId,
+          isFibUser: true,
+          fibName: response.data.name,
+          fibIban: response.data.iban,
+          fibDob: response.data.dateOfBirth,
+          fibPhone: response.data.phoneNumber,
+          fibGender: response.data.Gender,
+        };
+        setTimeout(() => {
+          onAuthenticationSuccess(user, null);
+        }, 1000);
       } else {
-        throw new Error('Failed to get SSO authorization code');
+        throw new Error('Failed to get user details');
       }
-    } catch (error) {
-      console.error('Authentication initiation failed:', error);
+    } catch (err) {
       setStatus('failed');
-      
-      if (error.message === 'Not in FIB app mode') {
-        setError('This feature is only available in the FIB app');
-      } else if (error.response && error.response.status === 403) {
-        setError('Access denied by FIB servers. Please try again later.');
-      } else if (error.response && error.response.status >= 500) {
-        setError('FIB servers are temporarily unavailable. Please try again later.');
-      } else {
-        setError('Failed to start authentication process. Please check your connection.');
-      }
+      setError('Failed to get user details');
     }
-  };
+  }, [onAuthenticationSuccess, ssoData]);
 
-  const handleRetry = () => {
+  // Handler for AUTHENTICATION_FAILED event
+  const handleAuthenticationFailed = useCallback(() => {
+    setStatus('failed');
+    setError('Authentication failed. Please try again.');
+  }, []);
+
+  // Register/unregister bridge event listeners
+  useEffect(() => {
+    if (!window.FIBNativeBridge) return;
+    window.FIBNativeBridge.addEventListener('AUTHENTICATED', handleAuthenticated);
+    window.FIBNativeBridge.addEventListener('AUTHENTICATION_FAILED', handleAuthenticationFailed);
+    return () => {
+      window.FIBNativeBridge.removeEventListener('AUTHENTICATED', handleAuthenticated);
+      window.FIBNativeBridge.removeEventListener('AUTHENTICATION_FAILED', handleAuthenticationFailed);
+    };
+  }, [handleAuthenticated, handleAuthenticationFailed]);
+
+  // Initiate SSO and send AUTHENTICATE to bridge
+  const initiateFibSso = useCallback(async () => {
     setStatus('authenticating');
     setError('');
-    initiateAuthentication();
+    setSsoData(null);
+    try {
+      const response = await axios.post('/api/auth/fib-sso/initiate');
+      if (response.data && response.data.ssoAuthorizationCode) {
+        setSsoData(response.data);
+        // Send AUTHENTICATE to native app
+        window.FIBNativeBridge.sendMessage({
+          type: 'AUTHENTICATE',
+          body: { readableId: normalizeReadableId(response.data.ssoAuthorizationCode) }
+        });
+      } else {
+        throw new Error('Failed to initiate FIB SSO');
+      }
+    } catch (err) {
+      setStatus('failed');
+      setError('Failed to start authentication process');
+    }
+  }, []);
+
+  // On mount or retry, start the SSO process
+  useEffect(() => {
+    if (window.FIBNativeBridge) {
+      initiateFibSso();
+    } else {
+      setStatus('failed');
+      setError('FIB Native Bridge not available.');
+    }
+    // eslint-disable-next-line
+  }, [retryCount]);
+
+  const handleRetry = () => {
+    setRetryCount((c) => c + 1);
+    setStatus('authenticating');
+    setError('');
   };
 
   const getStatusMessage = () => {
@@ -151,18 +132,17 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
     <div className="fib-splash-screen">
       <div className="splash-content">
         <div className="splash-logo">
-          <img 
-            src="https://fib.iq/wp-content/themes/FIB/assets/images/header-logo.svg" 
-            alt="FIB Logo" 
-            className="fib-logo-large" 
+          <img
+            src="https://fib.iq/wp-content/themes/FIB/assets/images/header-logo.svg"
+            alt="FIB Logo"
+            className="fib-logo-large"
           />
         </div>
-        
         <div className="splash-status">
           {getStatusIcon()}
           <h2>{getStatusMessage()}</h2>
           {status === 'authenticating' && (
-            <p>Please authorize this login in your FIB Personal App</p>
+            <p>Waiting for FIB app to authorize you...</p>
           )}
           {status === 'failed' && (
             <div className="error-section">
