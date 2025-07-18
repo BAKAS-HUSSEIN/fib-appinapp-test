@@ -1,12 +1,18 @@
 import { registerFIBNativeBridge } from "@first-iraqi-bank/sdk/fib-native-bridge";
 import { checkTestMode } from './testMode';
 
-export function isFibApp() {
+export function isInWebView() {
+  const userAgent = window.navigator.userAgent || window.navigator.vendor || window.opera;
   return (
-    typeof window !== 'undefined' &&
-    window.FIBNativeBridge &&
-    typeof window.FIBNativeBridge.sendMessage === 'function'
+    (/wv/.test(userAgent)) || // Android WebView
+    (userAgent.includes('WebView')) || // iOS WebView
+    (window.ReactNativeWebView !== undefined) // React Native WebView
   );
+}
+
+export function isFibApp() {
+  // Enable FIB mode for any WebView
+  return isInWebView();
 }
 
 // Bridge state

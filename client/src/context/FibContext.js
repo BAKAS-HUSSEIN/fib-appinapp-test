@@ -5,9 +5,7 @@ const FibContext = createContext();
 
 export const useFibContext = () => {
   const context = useContext(FibContext);
-  if (!context) {
-    throw new Error('useFibContext must be used within a FibProvider');
-  }
+  if (!context) throw new Error('useFibContext must be used within a FibProvider');
   return context;
 };
 
@@ -18,12 +16,8 @@ export const FibProvider = ({ children }) => {
     setIsFibMode(isFibApp());
   }, []);
 
-  const value = {
-    isFibMode
-  };
-
   return (
-    <FibContext.Provider value={value}>
+    <FibContext.Provider value={{ isFibMode }}>
       {children}
     </FibContext.Provider>
   );
