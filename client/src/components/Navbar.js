@@ -42,7 +42,6 @@ const Navbar = ({ user, logout, cartCount }) => {
               {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
             </Link>
           </li>
-          
           {user ? (
             <>
               <li className="nav-item">
@@ -50,23 +49,25 @@ const Navbar = ({ user, logout, cartCount }) => {
                   <FaUser /> Orders
                 </Link>
               </li>
+              {/* Only show profile/logout if NOT in FIB mode */}
               {!isFibMode && (
-                <li className="nav-item">
-                  <button onClick={handleProfileClick} className="nav-link profile-btn">
-                    <FaUserCircle /> Profile
-                  </button>
-                </li>
-              )}
-              {!isFibMode && (
-                <li className="nav-item">
-                  <button onClick={handleLogout} className="nav-link logout-btn">
-                    <FaSignOutAlt /> Logout
-                  </button>
-                </li>
+                <>
+                  <li className="nav-item">
+                    <button onClick={handleProfileClick} className="nav-link profile-btn">
+                      <FaUserCircle /> Profile
+                    </button>
+                  </li>
+                  <li className="nav-item">
+                    <button onClick={handleLogout} className="nav-link logout-btn">
+                      <FaSignOutAlt /> Logout
+                    </button>
+                  </li>
+                </>
               )}
             </>
           ) : (
             <>
+              {/* Only show login/register if NOT in FIB mode */}
               {!isFibMode && (
                 <>
                   <li className="nav-item">
@@ -81,7 +82,6 @@ const Navbar = ({ user, logout, cartCount }) => {
           )}
         </ul>
       </div>
-      
       {showProfile && (
         <Profile user={user} onClose={() => setShowProfile(false)} />
       )}

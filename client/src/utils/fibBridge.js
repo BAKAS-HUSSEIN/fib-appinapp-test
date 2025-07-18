@@ -1,20 +1,13 @@
 import { registerFIBNativeBridge } from "@first-iraqi-bank/sdk/fib-native-bridge";
 import { checkTestMode } from './testMode';
 
-// Detect whether we're running inside the real FIB mobile app
-export const detectRealFibEnv = () => {
-  try {
-    const ua = navigator.userAgent || '';
-
-    if (window.ReactNativeWebView) return true;
-    if (window.webkit?.messageHandlers?.FIBNativeBridge) return true;
-    if (/FIBApp|FirstIraqiBank/i.test(ua)) return true;
-  } catch (e) {
-    // ignore
-  }
-  return false;
-};
-
+export function isFibApp() {
+  return (
+    typeof window !== 'undefined' &&
+    window.FIBNativeBridge &&
+    typeof window.FIBNativeBridge.sendMessage === 'function'
+  );
+}
 
 // Bridge state
 let bridgeInitialized = false;
@@ -30,7 +23,7 @@ export const initializeFibBridge = () => {
     console.log('Test Mode: FIB Native Bridge initialized');
     return;
   }
-  const realEnv = detectRealFibEnv();
+  const realEnv = isFibApp();
   bridgeAvailable = realEnv;
 
   if (!realEnv) {

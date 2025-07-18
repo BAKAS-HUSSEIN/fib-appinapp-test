@@ -14,7 +14,6 @@ import FibSsoLogin from './pages/FibSsoLogin';
 import FibSplashScreen from './components/FibSplashScreen';
 import DebugPanel from './components/DebugPanel';
 import ModeIndicator from './components/ModeIndicator';
-import { initializeFibBridge } from './utils/fibBridge';
 import { useFibContext } from './context/FibContext';
 import './App.css';
 
@@ -22,48 +21,31 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showSplash, setShowSplash] = useState(false);
   const { isFibMode } = useFibContext();
+  const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
-    // Initialize FIB bridge
-    initializeFibBridge();
-    
     // Load cart from localStorage
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
       setCart(JSON.parse(savedCart));
     }
-    
     // Check for stored user token (for regular mode)
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    
     if (token && userData) {
       setUser(JSON.parse(userData));
     }
-    
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    console.log('App: isFibMode changed to:', isFibMode);
-    
     if (isFibMode) {
-      // In FIB app mode, show splash screen for authentication
-      console.log('App: Showing splash screen for FIB mode');
       setShowSplash(true);
     } else {
-      // In standalone mode, NEVER show splash screen
-      console.log('App: Hiding splash screen for regular mode');
       setShowSplash(false);
     }
   }, [isFibMode]);
-
-  useEffect(() => {
-    // Save cart to localStorage whenever it changes
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
 
   const login = (userData, token) => {
     setUser(userData);
@@ -71,8 +53,6 @@ function App() {
       localStorage.setItem('token', token);
     }
     localStorage.setItem('user', JSON.stringify(userData));
-    
-    // Hide splash screen if in FIB mode
     if (isFibMode) {
       setShowSplash(false);
     }
@@ -84,8 +64,6 @@ function App() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('cart');
-    
-    // In FIB mode, show splash screen again after logout
     if (isFibMode) {
       setShowSplash(true);
     }
@@ -134,10 +112,10 @@ function App() {
     );
   }
 
-  // Show splash screen in FIB mode when not authenticated
-  if (showSplash && isFibMode && !user) {
+  // FIB mode: show splash and only bridge-based SSO/payment
+  if (isFibMode && showSplash && !user) {
     return (
-      <FibSplashScreen 
+      <FibSplashScreen
         onAuthenticationSuccess={login}
         onAuthenticationFailure={() => {
           // Handle authentication failure - could show error or retry
@@ -152,50 +130,47 @@ function App() {
       <div className="App">
         <ModeIndicator />
         <DebugPanel />
-        <Navbar 
-          user={user} 
-          logout={logout} 
+        <Navbar
+          user={user}
+          logout={logout}
           cartCount={cart.reduce((total, item) => total + item.quantity, 0)}
         />
         <main className="main-content">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop addToCart={addToCart} />} />
-            <Route 
-              path="/cart" 
+            <Route
+              path="/cart"
               element={
-                <Cart 
-                  cart={cart} 
-                  removeFromCart={removeFromCart} 
+                <Cart
+                  cart={cart}
+                  removeFromCart={removeFromCart}
                   updateQuantity={updateQuantity}
                   clearCart={clearCart}
                   user={user}
                 />
-              } 
+              }
             />
-            <Route 
-              path="/login" 
-              element={
-                user ? <Navigate to="/" /> : <Login login={login} />
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                user ? <Navigate to="/" /> : <Register login={login} />
-              } 
-            />
-            <Route 
-              path="/fib-sso-login" 
-              element={
-                user ? <Navigate to="/" /> : <FibSsoLogin login={login} />
-              } 
-            />
-            <Route 
-              path="/orders" 
-              element={
-                user ? <Orders user={user} /> : <Navigate to="/login" />
-              } 
+            {/* Only show login/register if NOT in FIB mode */}
+            {!isFibMode && (
+              <>
+                <Route
+                  path="/login"
+                  element={user ? <Navigate to="/" /> : <Login login={login} />}
+                />
+                <Route
+                  path="/register"
+                  element={user ? <Navigate to="/" /> : <Register login={login} />}
+                />
+                <Route
+                  path="/fib-sso-login"
+                  element={user ? <Navigate to="/" /> : <FibSsoLogin login={login} />}
+                />
+              </>
+            )}
+            <Route
+              path="/orders"
+              element={user ? <Orders user={user} /> : <Navigate to="/login" />}
             />
             <Route path="/payment-success" element={<PaymentSuccess />} />
             <Route path="/payment-cancelled" element={<PaymentCancelled />} />
