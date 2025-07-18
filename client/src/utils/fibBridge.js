@@ -1,6 +1,21 @@
 import { registerFIBNativeBridge } from "@first-iraqi-bank/sdk/fib-native-bridge";
 import { checkTestMode } from './testMode';
 
+// Detect whether we're running inside the real FIB mobile app
+export const detectRealFibEnv = () => {
+  try {
+    const ua = navigator.userAgent || '';
+
+    if (window.ReactNativeWebView) return true;
+    if (window.webkit?.messageHandlers?.FIBNativeBridge) return true;
+    if (/FIBApp|FirstIraqiBank/i.test(ua)) return true;
+  } catch (e) {
+    // ignore
+  }
+  return false;
+};
+
+
 // Bridge state
 let bridgeInitialized = false;
 let bridgeAvailable = false;
@@ -8,17 +23,25 @@ let bridgeAvailable = false;
 // Initialize the FIB native bridge
 export const initializeFibBridge = () => {
   // Check for test mode first
-  if (checkTestMode()) {
+  const testModeEnabled = checkTestMode();
+  if (testModeEnabled()) {
     bridgeInitialized = true;
     bridgeAvailable = true;
     console.log('Test Mode: FIB Native Bridge initialized');
     return;
   }
-  
+  const realEnv = detectRealFibEnv();
+  bridgeAvailable = realEnv;
+
+  if (!realEnv) {
+    console.log('initializeFibBridge: No native environment detected');
+    bridgeInitialized = false;
+    return;
+  }
+
   try {
     registerFIBNativeBridge();
     bridgeInitialized = true;
-    bridgeAvailable = true;
     console.log('FIB Native Bridge initialized successfully');
   } catch (error) {
     console.log('FIB Native Bridge not available (running in standalone mode)');
@@ -29,7 +52,6 @@ export const initializeFibBridge = () => {
 
 // Check if running inside FIB native app
 export const isInFibApp = () => {
-  // Check for test mode
   const urlParams = new URLSearchParams(window.location.search);
   const testMode = urlParams.get('testMode');
   
@@ -38,15 +60,9 @@ export const isInFibApp = () => {
     return true;
   }
   
-  // ONLY return true if we have a working bridge
-  // This is the key fix - don't guess, only use bridge if it's actually there
-  if (window.FIBNativeBridge && typeof window.FIBNativeBridge.sendMessage === 'function') {
-    console.log('isInFibApp: Bridge detected and working');
-    return true;
-  }
   
-  console.log('isInFibApp: No bridge detected - running in regular mode');
-  return false;
+  console.log(`isInFibApp: bridgeAvailable=${bridgeAvailable}`);
+  return bridgeAvailable;
 };
 
 // Send message to native app
