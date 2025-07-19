@@ -19,6 +19,10 @@ const Navbar = ({ user, logout, cartCount }) => {
     setShowProfile(true);
   };
 
+  const handleProfileClose = () => {
+    setShowProfile(false);
+  };
+
   return (
     <nav className="navbar">
       <div className="nav-container">
@@ -81,29 +85,9 @@ const Navbar = ({ user, logout, cartCount }) => {
           )}
         </ul>
       </div>
-      {showProfile && (
-        <div className="profile-overlay" onClick={() => setShowProfile(false)}>
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-            <Profile user={user} />
-            <button 
-              className="close-profile-btn" 
-              onClick={() => setShowProfile(false)}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                background: 'none',
-                border: 'none',
-                fontSize: '20px',
-                cursor: 'pointer',
-                color: '#333'
-              }}
-            >
-              ×
-            </button>
-          </div>
-        </div>
-      )}
+      
+      {/* Use Profile component's built-in overlay */}
+      {showProfile && <Profile user={user} onClose={handleProfileClose} />}
     </nav>
   );
 };

@@ -41,9 +41,9 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
       
       logToServer('Starting user details retrieval process');
       
-      // Wait for native app to complete authentication (3 seconds delay)
-      logToServer('Waiting 3 seconds for native app to complete authentication...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Wait for native app to complete authentication (5 seconds delay instead of 3)
+      logToServer('Waiting 5 seconds for native app to complete authentication...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
       
       // Get user details from backend using the readableId (without hyphens)
       const normalizedReadableId = readableId.replaceAll('-', '');
@@ -59,7 +59,7 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
           fibIban: response.data.iban,
           fibDob: response.data.dateOfBirth,
           fibPhone: response.data.phoneNumber,
-          fibGender: response.data.Gender,
+          fibGender: response.data.Gender || response.data.gender,
         };
         logToServer('User authenticated successfully', user);
         setTimeout(() => {
@@ -81,6 +81,8 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
         setError('User details not found. Please try again.');
       } else if (err.response?.status === 429) {
         setError('Too many requests. Please try again later.');
+      } else if (err.response?.status === 500 && err.response?.data?.details?.errors?.some(e => e.code === 'USER_IS_NOT_AUTHORIZED')) {
+        setError('Authentication not completed. Please try again in a few seconds.');
       } else {
         setError(`Failed to get user details: ${err.message}`);
       }
