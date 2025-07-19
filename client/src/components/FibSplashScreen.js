@@ -221,11 +221,18 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
     <div className="fib-splash-screen">
       <div className="splash-content">
         <div className="splash-logo">
-          <img
-            src="https://fib.iq/wp-content/themes/FIB/assets/images/header-logo.svg"
-            alt="FIB Logo"
-            className="fib-logo-large"
-          />
+          <div className="logo-container">
+            <img
+              src="/BekasShop-logo.png"
+              alt="BekasShop Logo"
+              className="bekasshop-logo"
+            />
+            <img
+              src="https://fib.iq/wp-content/themes/FIB/assets/images/header-logo.svg"
+              alt="FIB Logo"
+              className="fib-logo-large"
+            />
+          </div>
         </div>
         <div className="splash-status">
           {getStatusIcon()}

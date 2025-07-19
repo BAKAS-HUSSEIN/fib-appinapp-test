@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FaShoppingCart, FaUser, FaSignOutAlt, FaUserCircle } from 'react-icons/fa';
+import { FaShoppingCart, FaUser, FaSignOutAlt, FaBars } from 'react-icons/fa';
 import Profile from './Profile';
 import { useFibContext } from '../context/FibContext';
 import './Navbar.css';
@@ -48,15 +48,10 @@ const Navbar = ({ user, logout, cartCount }) => {
           </li>
           {user ? (
             <>
-              <li className="nav-item">
-                <Link to="/orders" className="nav-link">
-                  <FaUser /> Orders
-                </Link>
-              </li>
-              {/* Show profile for all users (including FIB users) */}
+              {/* Show profile menu for all users (including FIB users) */}
               <li className="nav-item">
                 <button onClick={handleProfileClick} className="nav-link profile-btn">
-                  <FaUserCircle /> Profile
+                  <FaBars /> Menu
                 </button>
               </li>
               {/* Only show logout if NOT in FIB mode */}

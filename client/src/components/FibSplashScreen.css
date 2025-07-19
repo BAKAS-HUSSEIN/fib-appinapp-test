@@ -22,6 +22,20 @@
   margin-bottom: 2rem;
 }
 
+.logo-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.bekasshop-logo {
+  width: 120px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
 .fib-logo-large {
   width: 120px;
   height: auto;
@@ -107,8 +121,13 @@
     padding: 1rem;
   }
   
+  .logo-container {
+    gap: 1rem;
+  }
+  
+  .bekasshop-logo,
   .fib-logo-large {
-    width: 100px;
+    width: 80px;
   }
   
   .splash-status h2 {
@@ -117,5 +136,17 @@
   
   .splash-status p {
     font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .logo-container {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .bekasshop-logo,
+  .fib-logo-large {
+    width: 70px;
   }
 } 
