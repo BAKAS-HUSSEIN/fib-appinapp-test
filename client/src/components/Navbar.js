@@ -49,20 +49,19 @@ const Navbar = ({ user, logout, cartCount }) => {
                   <FaUser /> Orders
                 </Link>
               </li>
-              {/* Only show profile/logout if NOT in FIB mode */}
+              {/* Show profile for all users (including FIB users) */}
+              <li className="nav-item">
+                <button onClick={handleProfileClick} className="nav-link profile-btn">
+                  <FaUserCircle /> Profile
+                </button>
+              </li>
+              {/* Only show logout if NOT in FIB mode */}
               {!isFibMode && (
-                <>
-                  <li className="nav-item">
-                    <button onClick={handleProfileClick} className="nav-link profile-btn">
-                      <FaUserCircle /> Profile
-                    </button>
-                  </li>
-                  <li className="nav-item">
-                    <button onClick={handleLogout} className="nav-link logout-btn">
-                      <FaSignOutAlt /> Logout
-                    </button>
-                  </li>
-                </>
+                <li className="nav-item">
+                  <button onClick={handleLogout} className="nav-link logout-btn">
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </li>
               )}
             </>
           ) : (
@@ -83,7 +82,27 @@ const Navbar = ({ user, logout, cartCount }) => {
         </ul>
       </div>
       {showProfile && (
-        <Profile user={user} onClose={() => setShowProfile(false)} />
+        <div className="profile-overlay" onClick={() => setShowProfile(false)}>
+          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+            <Profile user={user} />
+            <button 
+              className="close-profile-btn" 
+              onClick={() => setShowProfile(false)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'none',
+                border: 'none',
+                fontSize: '20px',
+                cursor: 'pointer',
+                color: '#333'
+              }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
       )}
     </nav>
   );
