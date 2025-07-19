@@ -29,25 +29,18 @@ export function isInWebView() {
     (userAgent.includes('WebView')) || // iOS WebView
     (window.ReactNativeWebView !== undefined) // React Native WebView
   );
-  logToServer('WebView detection', { userAgent, isWebView: result });
   return result;
 }
 
 export function isFibApp() {
   // Enable FIB mode for any WebView
   const result = isInWebView();
-  logToServer('FIB app detection', { isFibApp: result });
   return result;
 }
 
 // Check if FIB Native Bridge is available
 export const isFibBridgeAvailable = () => {
   const result = !!(window.FIBNativeBridge && typeof window.FIBNativeBridge.sendMessage === 'function');
-  logToServer('Bridge availability check', { 
-    hasBridge: !!window.FIBNativeBridge,
-    hasSendMessage: !!(window.FIBNativeBridge && typeof window.FIBNativeBridge.sendMessage === 'function'),
-    isAvailable: result
-  });
   return result;
 };
 
@@ -105,8 +98,6 @@ export const sendMessageToNative = (type, body = {}) => {
 
 // Add event listener for native app events
 export const addNativeEventListener = (eventType, handler) => {
-  logToServer('Adding event listener', { eventType });
-  
   if (!isFibBridgeAvailable()) {
     logToServer('Cannot add event listener: Bridge not available');
     console.warn('Cannot add event listener: FIB Native Bridge not available');
@@ -124,8 +115,6 @@ export const addNativeEventListener = (eventType, handler) => {
 
 // Remove event listener
 export const removeNativeEventListener = (eventType, handler) => {
-  logToServer('Removing event listener', { eventType });
-  
   if (!isFibBridgeAvailable()) {
     return;
   }
