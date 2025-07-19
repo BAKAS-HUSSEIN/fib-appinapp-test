@@ -5,8 +5,7 @@ import axios from 'axios';
 import { 
   initiatePaymentWithNative, 
   addNativeEventListener, 
-  removeNativeEventListener,
-  NATIVE_EVENTS 
+  removeNativeEventListener
 } from '../utils/fibBridge';
 import { useFibContext } from '../context/FibContext';
 import './Cart.css';
@@ -129,8 +128,8 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
       };
 
       // Add event listeners
-      addNativeEventListener(NATIVE_EVENTS.PAYMENT_SUCCESSFULLY_PAID, handlePaymentSuccess);
-      addNativeEventListener(NATIVE_EVENTS.PAYMENT_FAILED, handlePaymentFailed);
+      addNativeEventListener('PAYMENT_SUCCESSFULLY_PAID', handlePaymentSuccess);
+      addNativeEventListener('PAYMENT_FAILED', handlePaymentFailed);
 
       // Send payment to native app
       console.log('Sending payment to native app:', {
@@ -145,8 +144,8 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
 
       // Cleanup event listeners after a timeout
       setTimeout(() => {
-        removeNativeEventListener(NATIVE_EVENTS.PAYMENT_SUCCESSFULLY_PAID, handlePaymentSuccess);
-        removeNativeEventListener(NATIVE_EVENTS.PAYMENT_FAILED, handlePaymentFailed);
+        removeNativeEventListener('PAYMENT_SUCCESSFULLY_PAID', handlePaymentSuccess);
+        removeNativeEventListener('PAYMENT_FAILED', handlePaymentFailed);
       }, 300000); // 5 minutes timeout
 
     } catch (error) {
