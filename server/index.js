@@ -561,6 +561,21 @@ app.post('/api/payment/fib/cancel/:paymentId', async (req, res) => {
   }
 });
 
+// FIB Logging endpoint for debugging WebView issues
+app.post('/api/logs/fib', (req, res) => {
+  const { message, data, timestamp, userAgent } = req.body;
+  
+  console.log(`[FIB LOG] ${timestamp} - ${message}`);
+  if (data) {
+    console.log(`[FIB LOG] Data:`, JSON.stringify(data, null, 2));
+  }
+  if (userAgent) {
+    console.log(`[FIB LOG] User Agent: ${userAgent}`);
+  }
+  
+  res.json({ success: true, logged: true });
+});
+
 // Serve static files from React build
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
