@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { FaSpinner, FaCheckCircle, FaExclamationTriangle } from 'react-icons/fa';
 import axios from 'axios';
+import { 
+  isFibBridgeAvailable, 
+  addNativeEventListener, 
+  removeNativeEventListener, 
+  authenticateWithNative 
+} from '../utils/fibBridge';
 import './FibSplashScreen.css';
 
 const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) => {
@@ -9,17 +15,18 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
   const [ssoData, setSsoData] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Helper to remove hyphens
-  const normalizeReadableId = (id) => id.replaceAll('-', '');
-
   // Handler for AUTHENTICATED event
   const handleAuthenticated = useCallback(async (event) => {
+    console.log('AUTHENTICATED event received:', event);
     setStatus('success');
     try {
       const readableId = ssoData?.ssoAuthorizationCode;
       if (!readableId) throw new Error('No readableId');
-      // Get user details from backend
-      const response = await axios.get(`/api/auth/fib-sso/details/${readableId}`);
+      
+      // Get user details from backend using the readableId (without hyphens)
+      const normalizedReadableId = readableId.replaceAll('-', '');
+      const response = await axios.get(`/api/auth/fib-sso/details/${normalizedReadableId}`);
+      
       if (response.data && response.data.name) {
         const user = {
           username: readableId,
@@ -30,6 +37,7 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
           fibPhone: response.data.phoneNumber,
           fibGender: response.data.Gender,
         };
+        console.log('User authenticated successfully:', user);
         setTimeout(() => {
           onAuthenticationSuccess(user, null);
         }, 1000);
@@ -37,63 +45,97 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
         throw new Error('Failed to get user details');
       }
     } catch (err) {
+      console.error('Error getting user details:', err);
       setStatus('failed');
-      setError('Failed to get user details');
+      setError('Failed to get user details. Please try again.');
     }
   }, [onAuthenticationSuccess, ssoData]);
 
   // Handler for AUTHENTICATION_FAILED event
-  const handleAuthenticationFailed = useCallback(() => {
+  const handleAuthenticationFailed = useCallback((event) => {
+    console.log('AUTHENTICATION_FAILED event received:', event);
     setStatus('failed');
     setError('Authentication failed. Please try again.');
   }, []);
 
   // Register/unregister bridge event listeners
   useEffect(() => {
-    if (!window.FIBNativeBridge) return;
-    window.FIBNativeBridge.addEventListener('AUTHENTICATED', handleAuthenticated);
-    window.FIBNativeBridge.addEventListener('AUTHENTICATION_FAILED', handleAuthenticationFailed);
+    if (!isFibBridgeAvailable()) {
+      console.log('Bridge not available, cannot register event listeners');
+      return;
+    }
+
+    console.log('Registering FIB bridge event listeners');
+    addNativeEventListener('AUTHENTICATED', handleAuthenticated);
+    addNativeEventListener('AUTHENTICATION_FAILED', handleAuthenticationFailed);
+
     return () => {
-      window.FIBNativeBridge.removeEventListener('AUTHENTICATED', handleAuthenticated);
-      window.FIBNativeBridge.removeEventListener('AUTHENTICATION_FAILED', handleAuthenticationFailed);
+      console.log('Removing FIB bridge event listeners');
+      removeNativeEventListener('AUTHENTICATED', handleAuthenticated);
+      removeNativeEventListener('AUTHENTICATION_FAILED', handleAuthenticationFailed);
     };
   }, [handleAuthenticated, handleAuthenticationFailed]);
 
   // Initiate SSO and send AUTHENTICATE to bridge
   const initiateFibSso = useCallback(async () => {
+    console.log('Initiating FIB SSO...');
     setStatus('authenticating');
     setError('');
     setSsoData(null);
+    
     try {
+      // Step 1: Call backend to initiate SSO
+      console.log('Calling backend to initiate SSO...');
       const response = await axios.post('/api/auth/fib-sso/initiate');
+      
       if (response.data && response.data.ssoAuthorizationCode) {
         setSsoData(response.data);
-        // Send AUTHENTICATE to native app
-        window.FIBNativeBridge.sendMessage({
-          type: 'AUTHENTICATE',
-          body: { readableId: normalizeReadableId(response.data.ssoAuthorizationCode) }
-        });
+        console.log('SSO initiated, readableId:', response.data.ssoAuthorizationCode);
+        
+        // Step 2: Send AUTHENTICATE message to native app
+        if (isFibBridgeAvailable()) {
+          console.log('Sending AUTHENTICATE message to native app...');
+          authenticateWithNative(response.data.ssoAuthorizationCode);
+        } else {
+          throw new Error('FIB Native Bridge not available');
+        }
       } else {
-        throw new Error('Failed to initiate FIB SSO');
+        throw new Error('Failed to initiate FIB SSO - no readableId received');
       }
     } catch (err) {
+      console.error('Error initiating FIB SSO:', err);
       setStatus('failed');
-      setError('Failed to start authentication process');
+      if (err.message.includes('FIB Native Bridge not available')) {
+        setError('FIB Native Bridge not available. Please update your FIB app or contact support.');
+      } else if (err.response?.status === 429) {
+        setError('Too many requests. Please try again later.');
+      } else {
+        setError('Failed to start authentication process. Please try again.');
+      }
     }
   }, []);
 
   // On mount or retry, start the SSO process
   useEffect(() => {
-    if (window.FIBNativeBridge) {
-      initiateFibSso();
-    } else {
-      setStatus('failed');
-      setError('FIB Native Bridge not available.');
-    }
-    // eslint-disable-next-line
-  }, [retryCount]);
+    console.log('FibSplashScreen mounted, retryCount:', retryCount);
+    
+    // Wait a bit for bridge to be ready
+    const timer = setTimeout(() => {
+      if (isFibBridgeAvailable()) {
+        console.log('Bridge is available, starting SSO...');
+        initiateFibSso();
+      } else {
+        console.log('Bridge not available after timeout');
+        setStatus('failed');
+        setError('FIB Native Bridge not available. Please update your FIB app or contact support.');
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [retryCount, initiateFibSso]);
 
   const handleRetry = () => {
+    console.log('Retrying FIB SSO...');
     setRetryCount((c) => c + 1);
     setStatus('authenticating');
     setError('');

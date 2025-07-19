@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { isFibApp } from '../utils/fibBridge';
+import { isInFibApp } from '../utils/fibBridge';
 
 const FibContext = createContext();
 
@@ -11,13 +11,22 @@ export const useFibContext = () => {
 
 export const FibProvider = ({ children }) => {
   const [isFibMode, setIsFibMode] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    setIsFibMode(isFibApp());
+    // Wait a bit for the bridge to be registered and available
+    const timer = setTimeout(() => {
+      const fibMode = isInFibApp();
+      console.log('FibContext: Setting isFibMode to:', fibMode);
+      setIsFibMode(fibMode);
+      setIsInitialized(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <FibContext.Provider value={{ isFibMode }}>
+    <FibContext.Provider value={{ isFibMode, isInitialized }}>
       {children}
     </FibContext.Provider>
   );

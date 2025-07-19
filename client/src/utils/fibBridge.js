@@ -1,4 +1,5 @@
 import { registerFIBNativeBridge } from "@first-iraqi-bank/sdk/fib-native-bridge";
+import { UnsupportedPlatformError, InvalidMessageError } from "@first-iraqi-bank/sdk/fib-native-bridge";
 import { checkTestMode } from './testMode';
 
 export function isInWebView() {
@@ -15,38 +16,9 @@ export function isFibApp() {
   return isInWebView();
 }
 
-// Bridge state
-let bridgeInitialized = false;
-let bridgeAvailable = false;
-
-// Initialize the FIB native bridge
-export const initializeFibBridge = () => {
-  // Check for test mode first
-  const testModeEnabled = checkTestMode();
-  if (testModeEnabled()) {
-    bridgeInitialized = true;
-    bridgeAvailable = true;
-    console.log('Test Mode: FIB Native Bridge initialized');
-    return;
-  }
-  const realEnv = isFibApp();
-  bridgeAvailable = realEnv;
-
-  if (!realEnv) {
-    console.log('initializeFibBridge: No native environment detected');
-    bridgeInitialized = false;
-    return;
-  }
-
-  try {
-    registerFIBNativeBridge();
-    bridgeInitialized = true;
-    console.log('FIB Native Bridge initialized successfully');
-  } catch (error) {
-    console.log('FIB Native Bridge not available (running in standalone mode)');
-    bridgeAvailable = false;
-    bridgeInitialized = false;
-  }
+// Check if FIB Native Bridge is available
+export const isFibBridgeAvailable = () => {
+  return !!(window.FIBNativeBridge && typeof window.FIBNativeBridge.sendMessage === 'function');
 };
 
 // Check if running inside FIB native app
@@ -59,48 +31,71 @@ export const isInFibApp = () => {
     return true;
   }
   
+  // Check if we're in a WebView AND the bridge is available
+  const inWebView = isFibApp();
+  const bridgeAvailable = isFibBridgeAvailable();
   
-  console.log(`isInFibApp: bridgeAvailable=${bridgeAvailable}`);
-  return bridgeAvailable;
+  console.log(`isInFibApp: inWebView=${inWebView}, bridgeAvailable=${bridgeAvailable}`);
+  return inWebView && bridgeAvailable;
 };
 
-// Send message to native app
+// Send message to native app with proper error handling
 export const sendMessageToNative = (type, body = {}) => {
-  if (!isInFibApp()) {
+  if (!isFibBridgeAvailable()) {
     throw new Error('FIB Native Bridge not available');
   }
 
   try {
     window.FIBNativeBridge.sendMessage({ type, body });
+    console.log(`Sent message to native app: ${type}`, body);
     return true;
   } catch (error) {
-    console.error('Failed to send message to native app:', error);
-    throw error;
+    if (error instanceof UnsupportedPlatformError) {
+      console.error("FIB Native App Bridge is not available, call the SDK only when its loaded inside FIB Native apps!", error);
+      throw new Error('FIB Native Bridge not available in this environment');
+    } else if (error instanceof InvalidMessageError) {
+      console.error("Invalid message type or body", error);
+      throw new Error('Invalid message format');
+    } else {
+      console.error('Failed to send message to native app:', error);
+      throw error;
+    }
   }
 };
 
 // Add event listener for native app events
 export const addNativeEventListener = (eventType, handler) => {
-  if (!isInFibApp()) {
+  if (!isFibBridgeAvailable()) {
     console.warn('Cannot add event listener: FIB Native Bridge not available');
     return;
   }
 
-  window.FIBNativeBridge.addEventListener(eventType, handler);
+  try {
+    window.FIBNativeBridge.addEventListener(eventType, handler);
+    console.log(`Added event listener for: ${eventType}`);
+  } catch (error) {
+    console.error(`Failed to add event listener for ${eventType}:`, error);
+  }
 };
 
 // Remove event listener
 export const removeNativeEventListener = (eventType, handler) => {
-  if (!isInFibApp()) {
+  if (!isFibBridgeAvailable()) {
     return;
   }
 
-  window.FIBNativeBridge.removeEventListener(eventType, handler);
+  try {
+    window.FIBNativeBridge.removeEventListener(eventType, handler);
+    console.log(`Removed event listener for: ${eventType}`);
+  } catch (error) {
+    console.error(`Failed to remove event listener for ${eventType}:`, error);
+  }
 };
 
 // SSO Authentication helpers
 export const authenticateWithNative = (readableId) => {
   const normalizedReadableId = readableId.replaceAll("-", "");
+  console.log(`Authenticating with readableId: ${normalizedReadableId}`);
   return sendMessageToNative("AUTHENTICATE", { readableId: normalizedReadableId });
 };
 

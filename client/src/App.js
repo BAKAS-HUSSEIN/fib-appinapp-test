@@ -21,7 +21,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { isFibMode } = useFibContext();
+  const { isFibMode, isInitialized } = useFibContext();
   const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
@@ -40,12 +40,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (isFibMode) {
+    if (isInitialized && isFibMode) {
       setShowSplash(true);
     } else {
       setShowSplash(false);
     }
-  }, [isFibMode]);
+  }, [isFibMode, isInitialized]);
 
   const login = (userData, token) => {
     setUser(userData);
@@ -104,7 +104,8 @@ function App() {
     setCart([]);
   };
 
-  if (loading) {
+  // Show loading while bridge is being detected
+  if (loading || !isInitialized) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div className="spinner"></div>
