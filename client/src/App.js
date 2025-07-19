@@ -12,8 +12,6 @@ import PaymentCancelled from './pages/PaymentCancelled';
 import FIBPaymentPage from './pages/FIBPaymentPage';
 import FibSsoLogin from './pages/FibSsoLogin';
 import FibSplashScreen from './components/FibSplashScreen';
-import DebugPanel from './components/DebugPanel';
-import ModeIndicator from './components/ModeIndicator';
 import { useFibContext } from './context/FibContext';
 import './App.css';
 
@@ -21,7 +19,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { isFibMode, isInitialized } = useFibContext();
+  const { isFibMode } = useFibContext();
   const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
@@ -40,12 +38,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (isInitialized && isFibMode) {
+    if (isFibMode) {
       setShowSplash(true);
     } else {
       setShowSplash(false);
     }
-  }, [isFibMode, isInitialized]);
+  }, [isFibMode]);
 
   const login = (userData, token) => {
     setUser(userData);
@@ -104,8 +102,7 @@ function App() {
     setCart([]);
   };
 
-  // Show loading while bridge is being detected
-  if (loading || !isInitialized) {
+  if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div className="spinner"></div>
@@ -119,7 +116,6 @@ function App() {
       <FibSplashScreen
         onAuthenticationSuccess={login}
         onAuthenticationFailure={() => {
-          // Handle authentication failure - could show error or retry
           console.error('FIB authentication failed');
         }}
       />
@@ -129,8 +125,6 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <ModeIndicator />
-        <DebugPanel />
         <Navbar
           user={user}
           logout={logout}
