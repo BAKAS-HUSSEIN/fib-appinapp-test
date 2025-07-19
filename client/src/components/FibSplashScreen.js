@@ -9,9 +9,6 @@ import {
 } from '../utils/fibBridge';
 import './FibSplashScreen.css';
 
-// Import the logo directly
-const bekasShopLogo = process.env.PUBLIC_URL + '/BekasShop-logo.png';
-
 const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) => {
   const [status, setStatus] = useState('initializing'); // initializing, authenticating, success, failed
   const [error, setError] = useState('');
@@ -226,20 +223,7 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
         <div className="splash-logo">
           <div className="logo-container">
             <div className="logo-wrapper">
-              <img
-                src={bekasShopLogo}
-                alt="BekasShop Logo"
-                className="bekasshop-logo"
-                onLoad={() => console.log('BekasShop logo loaded successfully')}
-                onError={(e) => {
-                  console.error('Failed to load BekasShop logo:', bekasShopLogo);
-                  e.target.style.display = 'none';
-                  // Show fallback text
-                  const fallback = e.target.nextElementSibling;
-                  if (fallback) fallback.style.display = 'block';
-                }}
-              />
-              <div className="logo-fallback" style={{ display: 'none' }}>
+              <div className="bekasshop-text-logo">
                 BekasShop
               </div>
             </div>

@@ -71,13 +71,13 @@ const Cart = ({ cart, removeFromCart, updateQuantity, clearCart, user }) => {
         } else {
           // Use regular web payment flow
           console.log('Using regular web payment flow');
-          clearCart();
-          navigate('/fib-payment', { state: {
-            ...paymentResponse.data,
-            ...paymentData,
+        clearCart();
+        navigate('/fib-payment', { state: {
+          ...paymentResponse.data,
+          ...paymentData,
             payment_id: paymentResponse.data.paymentId,
             paymentId: paymentResponse.data.paymentId
-          }});
+        }});
         }
       } else {
         setError('Payment failed. Please try again.');
