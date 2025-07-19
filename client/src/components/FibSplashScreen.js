@@ -9,6 +9,9 @@ import {
 } from '../utils/fibBridge';
 import './FibSplashScreen.css';
 
+// Import the logo directly
+const bekasShopLogo = process.env.PUBLIC_URL + '/BekasShop-logo.png';
+
 const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) => {
   const [status, setStatus] = useState('initializing'); // initializing, authenticating, success, failed
   const [error, setError] = useState('');
@@ -222,15 +225,33 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
       <div className="splash-content">
         <div className="splash-logo">
           <div className="logo-container">
-            <img
-              src="/BekasShop-logo.png"
-              alt="BekasShop Logo"
-              className="bekasshop-logo"
-            />
+            <div className="logo-wrapper">
+              <img
+                src={bekasShopLogo}
+                alt="BekasShop Logo"
+                className="bekasshop-logo"
+                onLoad={() => console.log('BekasShop logo loaded successfully')}
+                onError={(e) => {
+                  console.error('Failed to load BekasShop logo:', bekasShopLogo);
+                  e.target.style.display = 'none';
+                  // Show fallback text
+                  const fallback = e.target.nextElementSibling;
+                  if (fallback) fallback.style.display = 'block';
+                }}
+              />
+              <div className="logo-fallback" style={{ display: 'none' }}>
+                BekasShop
+              </div>
+            </div>
             <img
               src="https://fib.iq/wp-content/themes/FIB/assets/images/header-logo.svg"
               alt="FIB Logo"
               className="fib-logo-large"
+              onLoad={() => console.log('FIB logo loaded successfully')}
+              onError={(e) => {
+                console.error('Failed to load FIB logo');
+                e.target.style.display = 'none';
+              }}
             />
           </div>
         </div>
