@@ -39,10 +39,11 @@
 }
 
 .bekasshop-image-logo {
-  width: 160px;
+  width: 340px;
+  max-width: 95vw;
   height: auto;
   display: block;
-  margin: 0 auto 1.5rem auto;
+  margin: 0 auto 2.5rem auto;
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(80, 80, 200, 0.10);
   background: white;
@@ -134,8 +135,9 @@
   }
   
   .bekasshop-image-logo {
-    width: 120px;
-    margin-bottom: 1rem;
+    width: 220px;
+    max-width: 98vw;
+    margin-bottom: 2rem;
   }
   
   .splash-status h2 {
@@ -154,7 +156,8 @@
   }
   
   .bekasshop-image-logo {
-    width: 110px;
-    margin-bottom: 1rem;
+    width: 150px;
+    max-width: 99vw;
+    margin-bottom: 1.5rem;
   }
 } 

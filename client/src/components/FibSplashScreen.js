@@ -56,6 +56,7 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
         logToServer('User authenticated successfully (FIB SSO)', response.data.user);
         setTimeout(() => {
           onAuthenticationSuccess(response.data.user, response.data.token);
+          window.location.reload();
         }, 1000);
       } else if (response.data && response.data.name) {
         // fallback for legacy response
