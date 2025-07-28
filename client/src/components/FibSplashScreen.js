@@ -8,6 +8,7 @@ import {
   authenticateWithNative 
 } from '../utils/fibBridge';
 import './FibSplashScreen.css';
+import bekasShopLogo from '../assets/bekasshop-logo.png';
 
 const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) => {
   const [status, setStatus] = useState('initializing'); // initializing, authenticating, success, failed
@@ -43,15 +44,21 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
       
       // Wait for native app to complete authentication (5 seconds delay instead of 3)
       logToServer('Waiting 5 seconds for native app to complete authentication...');
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 2500));
       
       // Get user details from backend using the readableId (without hyphens)
       const normalizedReadableId = readableId.replaceAll('-', '');
       logToServer('Getting user details for readableId', normalizedReadableId);
       
       const response = await axios.get(`/api/auth/fib-sso/details/${normalizedReadableId}`);
-      
-      if (response.data && response.data.name) {
+      // If response contains token and user, use them
+      if (response.data && response.data.token && response.data.user) {
+        logToServer('User authenticated successfully (FIB SSO)', response.data.user);
+        setTimeout(() => {
+          onAuthenticationSuccess(response.data.user, response.data.token);
+        }, 1000);
+      } else if (response.data && response.data.name) {
+        // fallback for legacy response
         const user = {
           username: readableId,
           isFibUser: true,
@@ -61,12 +68,12 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
           fibPhone: response.data.phoneNumber,
           fibGender: response.data.Gender || response.data.gender,
         };
-        logToServer('User authenticated successfully', user);
+        logToServer('User authenticated successfully (legacy FIB SSO)', user);
         setTimeout(() => {
           onAuthenticationSuccess(user, null);
         }, 1000);
       } else {
-        throw new Error('Failed to get user details - no name in response');
+        throw new Error('Failed to get user details - no name or token in response');
       }
     } catch (err) {
       logToServer('Error getting user details', {
@@ -221,23 +228,7 @@ const FibSplashScreen = ({ onAuthenticationSuccess, onAuthenticationFailure }) =
     <div className="fib-splash-screen">
       <div className="splash-content">
         <div className="splash-logo">
-          <div className="logo-container">
-            <div className="logo-wrapper">
-              <div className="bekasshop-text-logo">
-                BekasShop
-              </div>
-            </div>
-            <img
-              src="https://fib.iq/wp-content/themes/FIB/assets/images/header-logo.svg"
-              alt="FIB Logo"
-              className="fib-logo-large"
-              onLoad={() => console.log('FIB logo loaded successfully')}
-              onError={(e) => {
-                console.error('Failed to load FIB logo');
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
+          <img src={bekasShopLogo} alt="BekasShop Logo" className="bekasshop-image-logo" />
         </div>
         <div className="splash-status">
           {getStatusIcon()}

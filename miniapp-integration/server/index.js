@@ -368,7 +368,54 @@ app.get('/api/auth/fib-sso/details/:ssoAuthorizationCode', async (req, res) => {
         'Authorization': authHeader
       }
     });
-    res.json(response.data);
+    const fibData = response.data;
+    // Use readableId as username and email (unique), fallback to phone if needed
+    const username = fibData.readableId || fibData.ReadableId || fibData.phoneNumber || `fibuser_${Date.now()}`;
+    const email = (fibData.readableId || fibData.ReadableId) ? `${(fibData.readableId || fibData.ReadableId)}@fibuser.com` : `${username}@fibuser.com`;
+    const password = require('crypto').randomBytes(16).toString('hex'); // random password
+    // Upsert user
+    let user;
+    const selectSql = db.isPostgres
+      ? 'SELECT * FROM users WHERE username = $1'
+      : 'SELECT * FROM users WHERE username = ?';
+    user = await db.get(selectSql, [username]);
+    if (user) {
+      // Update FIB fields
+      const updateSql = db.isPostgres
+        ? 'UPDATE users SET fib_phone = $1, fib_iban = $2, fib_name = $3, fib_gender = $4, fib_dob = $5, fib_sso_user = $6 WHERE id = $7'
+        : 'UPDATE users SET fib_phone = ?, fib_iban = ?, fib_name = ?, fib_gender = ?, fib_dob = ?, fib_sso_user = ? WHERE id = ?';
+      await db.run(updateSql, [
+        fibData.phoneNumber || '',
+        fibData.iban || '',
+        fibData.name || '',
+        fibData.gender || '',
+        fibData.dateOfBirth || '',
+        true,
+        user.id
+      ]);
+    } else {
+      // Insert new user
+      const insertSql = db.isPostgres
+        ? 'INSERT INTO users (username, email, password, fib_phone, fib_iban, fib_name, fib_gender, fib_dob, fib_sso_user) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *'
+        : 'INSERT INTO users (username, email, password, fib_phone, fib_iban, fib_name, fib_gender, fib_dob, fib_sso_user) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
+      const result = await db.run(insertSql, [
+        username,
+        email,
+        password,
+        fibData.phoneNumber || '',
+        fibData.iban || '',
+        fibData.name || '',
+        fibData.gender || '',
+        fibData.dateOfBirth || '',
+        true
+      ]);
+      user = db.isPostgres ? result.rows[0] : { id: result.lastID, username, email };
+    }
+    // Fetch the user again to get the full object
+    user = await db.get(selectSql, [username]);
+    // Issue JWT
+    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET || 'your-secret-key', { expiresIn: '24h' });
+    res.json({ token, user });
   } catch (error) {
     console.error('FIB SSO get details error:', error.response?.data || error.message);
     res.status(500).json({ error: 'Failed to get FIB SSO details', details: error.response?.data || error.message });
